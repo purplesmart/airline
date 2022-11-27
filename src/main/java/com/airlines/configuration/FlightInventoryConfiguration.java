@@ -13,7 +13,13 @@ public class FlightInventoryConfiguration {
     private String priceResourcePath;
 
     @Value( "${waitingtimebetweenflights}" )
-    private String waitingTimeBetweenFlights;
+    private int waitingTimeBetweenFlights;
+
+    @Value( "${minimumavailableseats}" )
+    private int minimumAvailableSeats;
+
+    @Value( "${minimumdaysforroundtrip}" )
+    private int minimumDaysForRoundTrip;
 
     public String getFlightResourcePath(){
         return flightResourcePath;
@@ -23,7 +29,16 @@ public class FlightInventoryConfiguration {
         return priceResourcePath;
     }
 
-    public String getWaitingTimeBetweenFlights(){
+    public int getWaitingTimeBetweenFlights(){
         return waitingTimeBetweenFlights;
     }
+
+    public int getMinimumAvailableSeats(){
+        return minimumAvailableSeats;
+    }
+
+    public int getMinimumDaysForRoundTrip(){
+        return minimumDaysForRoundTrip;
+    }
+
 }

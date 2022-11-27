@@ -1,6 +1,6 @@
 package com.airlines.model;
 
-public class ItineraryRequest {
+public class AllRoundTripRequest {
     public String fromAirport;
     public String toAirport;
 }

@@ -24,6 +24,24 @@ public class AirlineController {
     private FlightItineraryService flightItineraryService;
 
 
+    @GetMapping("/priceRoundTrip")
+    public ResponseEntity<Itinerary[]> priceRoundTrip(
+            @RequestBody @Valid RoundTripRequest roundTripRequest) {
+        try {
+            return Optional
+                    .ofNullable(flightItineraryService.getPriceRoundTrip(
+                            roundTripRequest.departureDate,
+                            roundTripRequest.fromAirport,
+                            roundTripRequest.returnDate,
+                            roundTripRequest.toAirport))
+                    .map(flightItinerary -> ResponseEntity.ok().body(flightItinerary))
+                    .orElseGet(() -> ResponseEntity.internalServerError().build());
+        }catch (Exception ex){
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "General error", ex);
+        }
+    }
+
     @GetMapping("/priceWithConnections")
     public ResponseEntity<Itinerary[]> priceWithConnections(
             @RequestBody @Valid WithConnectionsRequest withConnectionsRequest) {
@@ -41,5 +59,20 @@ public class AirlineController {
         }
     }
 
+    @GetMapping("/priceAllRoundTrip")
+    public ResponseEntity<Itinerary[]> priceAllRoundTrip(
+            @RequestBody @Valid AllRoundTripRequest allRoundTripRequest) {
+        try {
+            return Optional
+                    .ofNullable(flightItineraryService.getPriceAllRoundTrip(
+                            allRoundTripRequest.fromAirport,
+                            allRoundTripRequest.toAirport))
+                    .map(flightItinerary -> ResponseEntity.ok().body(flightItinerary))
+                    .orElseGet(() -> ResponseEntity.internalServerError().build());
+        }catch (Exception ex){
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "General error", ex);
+        }
+    }
 
 }

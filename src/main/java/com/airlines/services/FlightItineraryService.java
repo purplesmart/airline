@@ -9,17 +9,36 @@ import org.springframework.stereotype.Service;
 public class FlightItineraryService {
 
     @Autowired
-    private FlightsAnalysis flightsAnalyze;
+    private FlightsAnalysis flightsAnalysis;
 
-
-    public Itinerary[] getPriceWithConnections( String date, String fromAirport,String toAirport) {
+    public Itinerary[] getPriceRoundTrip(String departureDate, String fromAirport, String returnDate, String toAirport) {
 
         try {
-            return flightsAnalyze.getPriceWithConnections(date, fromAirport, toAirport);
+            return flightsAnalysis.getPriceRoundTrip(departureDate, fromAirport, returnDate, toAirport);
         } catch (Exception ex) {
             return null;
         }
     }
 
+    public Itinerary[] getPriceWithConnections( String date, String fromAirport,String toAirport) {
+
+        try {
+            return flightsAnalysis.getPriceWithConnections(date, fromAirport, toAirport);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    public Itinerary[] getPriceAllRoundTrip(
+            String fromAirport,
+            String toAirport) {
+        try {
+            return flightsAnalysis.getPriceAllRoundTrip(
+                    fromAirport,
+                    toAirport);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
 
 }

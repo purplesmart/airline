@@ -11,9 +11,12 @@ import java.util.List;
 @EnableJpaRepositories
 public interface FlightsRepository extends JpaRepository<Flight, String> {
 
-    List<Flight> findByDateAndFromAirport(String date, String fromAirport);
-    //List<Flight> findByDateAndFromAirportAndToAirport(String date, String fromAirport, String toAirport);
-    List<Flight> findByDateTimeUTCBetweenAndFromAirportAndToAirport(Date dateTimeUTCStart, Date dateTimeUTCEnd, String fromAirport, String toAirport);
-    List<Flight> findByDateInAndFromAirportIn(String[] dates, String[] fromAirports);
-    List<Flight> findByDateTimeUTCIn(Date[] dates);
+    List<Flight> findByDateAndFromAirportAndAvailableSeatsGreaterThanEqual(String date, String fromAirport, int availableSeats);
+
+    List<Flight> findByDateTimeUTCBetweenAndFromAirportAndToAirportAndAvailableSeatsGreaterThanEqual(Date dateTimeUTCStart, Date dateTimeUTCEnd, String fromAirport, String toAirport, int availableSeats);
+
+    List<Flight> findByDateInAndFromAirportInAndToAirportInAndAvailableSeatsGreaterThanEqual(String[] departureDates, String[] fromAirports, String[] toAirports, int availableSeats);
+
+    List<Flight> findByFromAirportInAndToAirportInAndAvailableSeatsGreaterThanEqualOrderByDate(String[] fromAirports, String[] toAirports, int availableSeats);
+
 }
