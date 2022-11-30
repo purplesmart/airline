@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 import javax.validation.Valid;
 import java.util.Optional;
 
@@ -23,28 +22,24 @@ public class AirlineController {
     @Autowired
     private FlightItineraryService flightItineraryService;
 
-
     @GetMapping("/priceRoundTrip")
-    public ResponseEntity<Itinerary[]> priceRoundTrip(
-            @RequestBody @Valid RoundTripRequest roundTripRequest) {
+    public ResponseEntity<Itinerary[]> priceRoundTrip(@Valid @RequestBody RoundTripRequest roundTripRequest) {
         try {
             return Optional
                     .ofNullable(flightItineraryService.getPriceRoundTrip(
-                            roundTripRequest.departureDate,
-                            roundTripRequest.fromAirport,
-                            roundTripRequest.returnDate,
-                            roundTripRequest.toAirport))
+                            roundTripRequest.departureDate, roundTripRequest.fromAirport,
+                            roundTripRequest.returnDate, roundTripRequest.toAirport))
                     .map(flightItinerary -> ResponseEntity.ok().body(flightItinerary))
                     .orElseGet(() -> ResponseEntity.internalServerError().build());
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "General error", ex);
+                    HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
         }
     }
 
     @GetMapping("/priceWithConnections")
-    public ResponseEntity<Itinerary[]> priceWithConnections(
-            @RequestBody @Valid WithConnectionsRequest withConnectionsRequest) {
+    public ResponseEntity<Itinerary[]> priceWithConnections(@Valid
+            @RequestBody WithConnectionsRequest withConnectionsRequest) {
         try {
             return Optional
                     .ofNullable(flightItineraryService.getPriceWithConnections(
@@ -55,13 +50,13 @@ public class AirlineController {
                     .orElseGet(() -> ResponseEntity.internalServerError().build());
         }catch (Exception ex){
             throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "General error", ex);
+                    HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
         }
     }
 
     @GetMapping("/priceAllRoundTrip")
-    public ResponseEntity<Itinerary[]> priceAllRoundTrip(
-            @RequestBody @Valid AllRoundTripRequest allRoundTripRequest) {
+    public ResponseEntity<Itinerary[]> priceAllRoundTrip(@Valid
+            @RequestBody AllRoundTripRequest allRoundTripRequest) {
         try {
             return Optional
                     .ofNullable(flightItineraryService.getPriceAllRoundTrip(
@@ -71,7 +66,7 @@ public class AirlineController {
                     .orElseGet(() -> ResponseEntity.internalServerError().build());
         }catch (Exception ex){
             throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "General error", ex);
+                    HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex);
         }
     }
 
