@@ -13,10 +13,10 @@ public interface FlightsRepository extends JpaRepository<Flight, String> {
 
     List<Flight> findByDateAndFromAirportAndAvailableSeatsGreaterThanEqual(String date, String fromAirport, int availableSeats);
 
-    List<Flight> findByDateTimeUTCBetweenAndFromAirportAndToAirportAndAvailableSeatsGreaterThanEqual(Date dateTimeUTCStart, Date dateTimeUTCEnd, String fromAirport, String toAirport, int availableSeats);
-
     List<Flight> findByDateInAndFromAirportInAndToAirportInAndAvailableSeatsGreaterThanEqual(String[] departureDates, String[] fromAirports, String[] toAirports, int availableSeats);
 
     List<Flight> findByFromAirportInAndToAirportInAndAvailableSeatsGreaterThanEqualOrderByDate(String[] fromAirports, String[] toAirports, int availableSeats);
+
+    List<Flight> findByDateTimeUTCBetweenAndToAirportAndAvailableSeatsGreaterThanEqual(Date dateTimeUTCStart, Date dateTimeUTCEnd, String toAirport, int availableSeats);
 
 }

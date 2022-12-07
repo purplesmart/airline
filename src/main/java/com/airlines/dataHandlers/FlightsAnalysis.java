@@ -6,6 +6,7 @@ import com.airlines.model.Itinerary;
 import com.airlines.repositories.FlightsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,13 +30,13 @@ public class FlightsAnalysis {
         List<Flight> departureAndReturnFlights =
                 getDepartureAndReturnFlights(departureDate, fromAirport, returnDate, toAirport);
 
-        if(departureAndReturnFlights.size() > 0) {
+        if (departureAndReturnFlights.size() > 0) {
 
             List<Itinerary> itineraries =
                     getDepartureAndReturnFlights(departureAndReturnFlights, departureDate, fromAirport, returnDate, toAirport);
 
             return itineraries.toArray(new Itinerary[itineraries.size()]);
-        }else{
+        } else {
             return new Itinerary[]{};
         }
     }
@@ -96,32 +97,68 @@ public class FlightsAnalysis {
     }
 
     private List<Itinerary> getConnectionFlights(List<Flight> flightsFromOrigin, String toAirport) {
+
+        Date earlyDate = getEarlyDateTimeFlightBound(flightsFromOrigin, toAirport);
+        Date lateDate = getLateDateTimeFlightBound(flightsFromOrigin, toAirport);
+
+        List<Flight> connectionFlights = flightsRepository
+                .findByDateTimeUTCBetweenAndToAirportAndAvailableSeatsGreaterThanEqual(
+                        earlyDate, lateDate, toAirport,
+                        flightInventoryConfiguration.getMinimumAvailableSeats());
+
         return flightsFromOrigin.stream()
-                .filter(flight -> !flight.toAirport.equals(toAirport))
-                .map(connectionFlight -> {
-                    Date startDateWithDuration =
-                            Date.from(connectionFlight.dateTimeUTC.toInstant()
-                                    .plus(Duration.ofMinutes(connectionFlight.duration)));
-                    Date endDateWithWaitFactor =
-                            Date.from(startDateWithDuration.toInstant()
-                                    .plus(Duration.ofMinutes(flightInventoryConfiguration.getWaitingTimeBetweenFlights())));
-                    List<Flight> nextConnections =
-                            flightsRepository
-                                    .findByDateTimeUTCBetweenAndFromAirportAndToAirportAndAvailableSeatsGreaterThanEqual(
-                                            startDateWithDuration,
-                                            endDateWithWaitFactor,
-                                            connectionFlight.toAirport,
-                                            toAirport,
-                                            flightInventoryConfiguration.getMinimumAvailableSeats());
-                    if (nextConnections.size() > 0) {
-                        return new Itinerary(connectionFlight, nextConnections);
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .flatMap(departureFlight -> connectionFlights.stream()
+                        .map(returnFlight ->
+                                (isConnectionFlight(toAirport, departureFlight, returnFlight)) ?
+                                        new Itinerary(departureFlight, returnFlight)
+                                        : null))
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
+    private Date getEndDateWithWaitFactor(Date startDateWithDuration) {
+        return Date.from(startDateWithDuration.toInstant()
+                .plus(Duration.ofMinutes(flightInventoryConfiguration.getWaitingTimeBetweenFlights())));
+    }
+
+    private Date getStartDateWithDuration(Flight departureFlight) {
+        return Date.from(departureFlight.dateTimeUTC.toInstant()
+                .plus(Duration.ofMinutes(departureFlight.duration)));
+    }
+
+    private boolean isConnectionFlight(String toAirport, Flight departureFlight, Flight returnFlight) {
+        Date startDateWithDuration = getStartDateWithDuration(departureFlight);
+        Date endDateWithWaitFactor = getEndDateWithWaitFactor(startDateWithDuration);
+        return returnFlight.dateTimeUTC.compareTo(startDateWithDuration) >= 0
+                && returnFlight.dateTimeUTC.compareTo(endDateWithWaitFactor) <= 0
+                && departureFlight.toAirport.equals(returnFlight.fromAirport)
+                && returnFlight.toAirport.equals(toAirport);
+    }
+
+    private Date getLateDateTimeFlightBound(List<Flight> flightsFromOrigin, String toAirport) {
+        OptionalLong lateDateAsLong = flightsFromOrigin.stream()
+                .filter(flight -> !flight.toAirport.equals(toAirport))
+                .mapToLong(connectionFlight -> Date.from(connectionFlight.dateTimeUTC.toInstant()
+                        .plus(Duration.ofMinutes(connectionFlight.duration))).getTime())
+                .max();
+        if (lateDateAsLong.isPresent()) {
+            return new Date(lateDateAsLong.getAsLong());
+        } else {
+            throw new IllegalArgumentException("Failed to compose late date time flight bound");
+        }
+    }
+
+    private Date getEarlyDateTimeFlightBound(List<Flight> flightsFromOrigin, String toAirport) {
+        OptionalLong earlyDateAsLong = flightsFromOrigin.stream()
+                .filter(flight -> !flight.toAirport.equals(toAirport))
+                .mapToLong(connectionFlight -> Date.from(connectionFlight.dateTimeUTC.toInstant()
+                        .plus(Duration.ofMinutes(connectionFlight.duration))).getTime())
+                .min();
+        if (earlyDateAsLong.isPresent()) {
+            return new Date(earlyDateAsLong.getAsLong());
+        } else {
+            throw new IllegalArgumentException("Failed to compose early date time flight bound");
+        }
+    }
 
 
     public Itinerary[] getPriceAllRoundTrip(String fromAirport, String toAirport) {
@@ -157,8 +194,8 @@ public class FlightsAnalysis {
                                 flight.fromAirport.equals(fromAirport)
                                         && flight.toAirport.equals(toAirport)).findFirst();
 
-        if(earliestDepartureFlight.isEmpty()){
-            throw new NoSuchElementException(String.format("No flights from %s to %s found", fromAirport,toAirport));
+        if (earliestDepartureFlight.isEmpty()) {
+            throw new NoSuchElementException(String.format("No flights from %s to %s found", fromAirport, toAirport));
         }
 
         Date returnFlightStartDate =
@@ -179,8 +216,8 @@ public class FlightsAnalysis {
                 returnFlights.stream()
                         .reduce((first, second) -> second);
 
-        if(latestReturnFlight.isEmpty()){
-            throw new NoSuchElementException(String.format("No flights from %s to %s found", fromAirport,toAirport));
+        if (latestReturnFlight.isEmpty()) {
+            throw new NoSuchElementException(String.format("No flights from %s to %s found", fromAirport, toAirport));
         }
 
         Date departureFlightEndDate =
