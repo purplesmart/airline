@@ -83,8 +83,12 @@ public class FlightsAnalysis {
 
         List<Flight> flightsFromOrigin = flightsRepository.findByDateAndFromAirportAndAvailableSeatsGreaterThanEqual(date, fromAirport, flightInventoryConfiguration.getMinimumAvailableSeats());
 
-        itineraries.addAll(getDirectFlights(flightsFromOrigin, toAirport));
-        itineraries.addAll(getConnectionFlights(flightsFromOrigin, toAirport));
+        if(flightsFromOrigin.size() > 0 ) {
+
+            itineraries.addAll(getDirectFlights(flightsFromOrigin, toAirport));
+            itineraries.addAll(getConnectionFlights(flightsFromOrigin, toAirport));
+
+        }
 
         return itineraries.toArray(new Itinerary[itineraries.size()]);
     }
